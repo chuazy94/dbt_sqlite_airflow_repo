@@ -1,0 +1,4 @@
+sources:
+  - name: raw_data
+    tables:
+      - name: listings

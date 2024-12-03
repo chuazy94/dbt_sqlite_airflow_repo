@@ -1,0 +1,9 @@
+# Ignore raw and processed data
+dbt_sqlite/data/
+
+# Ignore SQLite database file
+*.sqlite
+*.db
+
+# Ignore ipynb_checkpoints
+Jupyter_Notebooks/.ipynb_checkpoints
