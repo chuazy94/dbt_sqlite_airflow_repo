@@ -7,3 +7,7 @@ dbt_sqlite/data/
 
 # Ignore ipynb_checkpoints
 Jupyter_Notebooks/.ipynb_checkpoints
+
+
+# Ignore DAGs logs
+airflow_pyspark/logs
