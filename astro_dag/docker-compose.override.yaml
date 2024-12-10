@@ -1,0 +1,15 @@
+version: '3.4'
+
+services:
+  webserver:
+    volumes:
+      - ./../practice.db:/usr/local/airflow/sqlite.db  # Mount SQLite database
+  scheduler:
+    volumes:
+      - ./../practice.db:/usr/local/airflow/sqlite.db
+  worker:
+    volumes:
+      - ./../practice.db:/usr/local/airflow/sqlite.db
+  triggerer:
+    volumes:
+      - ./../practice.db:/usr/local/airflow/sqlite.db

@@ -1,0 +1,84 @@
+x-spark-common: &spark-common
+  image: bitnami/spark:3.5.1-debian-12-r4
+  volumes:
+    - ./jobs:/opt/bitnami/spark/jobs
+    - ./config/airflow.cfg:/opt/airflow/airflow.cfg
+  environment:
+    AIRFLOW__WEBSERVER__SECRET_KEY: 'strong-secret-key'
+    PYSPARK_PYTHON : '/usr/bin/python3.12'
+    PYSPARK_DRIVER_PYTHON : '/usr/bin/python3.12'
+  networks:
+    - airflow_network
+
+x-airflow-common: &airflow-common
+  build:
+    context: .
+    dockerfile: Dockerfile
+  environment:
+    AIRFLOW__API__AUTH_BACKENDS: 'airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session'
+    AIRFLOW__WEBSERVER__SECRET_KEY: 'strong-secret-key'
+    #AIRFLOW_CONFIG: '/opt/airflow/config/airflow.cfg'
+  volumes:
+    - ./jobs:/opt/airflow/jobs
+    - ./dags:/opt/airflow/dags
+    - ./logs:/opt/airflow/logs
+    - ./config/airflow.cfg:/opt/airflow/airflow.cfg
+  depends_on:
+    - postgres
+  networks:
+    - airflow_network
+
+services:
+  spark-master:
+    <<: *spark-common
+    command: bin/spark-class org.apache.spark.deploy.master.Master
+    ports:
+      - "9090:8080"
+      - "7077:7077"
+
+  spark-worker:
+    <<: *spark-common
+    command: bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
+    depends_on:
+      - spark-master
+    environment:
+      SPARK_MODE: worker
+      SPARK_WORKER_CORES: 2
+      SPARK_WORKER_MEMORY: 1g
+      SPARK_MASTER_URL: spark://spark-master:7077
+
+  postgres:
+    image: postgres:14.0
+    environment:
+      - POSTGRES_USER=airflow
+      - POSTGRES_PASSWORD=airflow
+      - POSTGRES_DB=airflow
+    networks:
+      - airflow_network
+
+  webserver:
+    <<: *airflow-common
+    command: bash -c "airflow db init && source /opt/airflow/init_connections.sh && airflow webserver"
+    environment:
+      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres/airflow
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+    volumes:
+      - ./init_connections.sh:/opt/airflow/init_connections.sh
+      - ./config/airflow.cfg:/opt/airflow/airflow.cfg
+    ports:
+      - "8080:8080"
+    depends_on:
+      - scheduler
+
+  scheduler:
+    <<: *airflow-common
+    environment:
+      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres/airflow
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+    restart: always
+    depends_on:
+      - postgres
+    command: bash -c "airflow db init && airflow users create --username airflow --firstname Zhi --lastname Chua --role Admin --email zhiyuanchua2806@gmail.com --password airflow && airflow scheduler"
+
+networks:
+  airflow_network:
