@@ -14,7 +14,7 @@ def run_spark_job():
         .appName("PySpark Example") \
         .getOrCreate()
 
-    df = spark.read.csv("file:///usr/local/airflow/include/data.csv", header=True)
+    df = spark.read.csv("/usr/local/airflow/include/data.csv", header=True)
     df.show()
 
     spark.stop()

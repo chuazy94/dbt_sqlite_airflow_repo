@@ -1,0 +1,18 @@
+FROM bitnami/spark:latest
+
+USER root
+
+# Install JDK 11
+# Install OpenJDK 11
+RUN apt-get update && \
+    apt-get install -y software-properties-common && \
+    add-apt-repository "deb http://deb.debian.org/debian bullseye main" && \
+    apt-get update && \
+    apt-get install -y openjdk-11-jdk && \
+    apt-get clean
+
+# Set JAVA_HOME to JDK 11
+ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
+RUN export JAVA_HOME
+
+USER 1001

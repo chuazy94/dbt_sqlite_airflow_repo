@@ -11,3 +11,6 @@ Jupyter_Notebooks/.ipynb_checkpoints
 
 # Ignore DAGs logs
 airflow_pyspark/logs
+
+*.pyc
+*.log
