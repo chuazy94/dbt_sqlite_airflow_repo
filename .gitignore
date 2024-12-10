@@ -14,3 +14,8 @@ airflow_pyspark/logs
 
 *.pyc
 *.log
+
+*.csv
+*.crc
+
+*.db
